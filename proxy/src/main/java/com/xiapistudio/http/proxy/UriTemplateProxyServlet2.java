@@ -14,13 +14,11 @@ package com.xiapistudio.http.proxy;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,7 +38,7 @@ public class UriTemplateProxyServlet2 extends ProxyServlet {
     protected String targetUriTemplate; // e.g.: {protocol}://{hostname}
     protected String targetUriMapping;  // e.g.: /proxy/{protocol}/{hostname}/**
 
-    private AntPathMatcher pathMatcher = new AntPathMatcher();
+    protected AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void initTarget() throws ServletException {
@@ -66,15 +64,6 @@ public class UriTemplateProxyServlet2 extends ProxyServlet {
         // TODO: 对于错误请求直接返回
         if (uri.toLowerCase().equals("/error")) {
             return;
-        }
-
-        // 获取上报的Cookies
-        Map<String, Cookie> exitsCookies = new HashMap<>();
-        Cookie[] cookies = servletRequest.getCookies();
-        if (null != cookies) {
-            for (Cookie cookie : cookies) {
-                exitsCookies.put(cookie.getName(), cookie);
-            }
         }
 
         // TODO: 不是以 / 结尾的，补齐 uri，不然无法 match
@@ -106,6 +95,11 @@ public class UriTemplateProxyServlet2 extends ProxyServlet {
         }
     }
 
+    protected void superService(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
+            throws ServletException, IOException {
+        super.service(servletRequest, servletResponse);
+    }
+
     @Override
     protected String rewritePathInfoFromRequest(HttpServletRequest servletRequest) {
         String path = super.rewritePathInfoFromRequest(servletRequest);
@@ -118,6 +112,8 @@ public class UriTemplateProxyServlet2 extends ProxyServlet {
         }
 
         path = path.startsWith("/") ? path : "/" + path;
+
+        System.out.println("path:" + path);
 
         // 去除最后 "/" 是为了保障 PATH 正确性
         return StringUtils.trimTrailingCharacter(path, '/');
@@ -146,8 +142,10 @@ public class UriTemplateProxyServlet2 extends ProxyServlet {
      * @param uri
      * @throws ServletException
      */
-    private void initTargetUri(String uri, HttpServletRequest servletRequest) throws ServletException {
+    protected void initTargetUri(String uri, HttpServletRequest servletRequest) throws ServletException {
         targetUri = extractTargetInfo(uri, targetUriTemplate);
+
+        System.out.println("targetUri:" + targetUri);
 
         try {
             targetUriObj = new URI(targetUri);
@@ -173,7 +171,7 @@ public class UriTemplateProxyServlet2 extends ProxyServlet {
      * @return
      * @throws ServletException
      */
-    private String extractTargetInfo(String source, String template)
+    protected String extractTargetInfo(String source, String template)
             throws ServletException {
         Map<String, String> result = pathMatcher.extractUriTemplateVariables(targetUriMapping, source);
 
@@ -199,7 +197,7 @@ public class UriTemplateProxyServlet2 extends ProxyServlet {
      * @return
      * @throws ServletException
      */
-    private String extractRefererUri(String referer)
+    protected String extractRefererUri(String referer)
             throws ServletException {
         String preUri = "/";
         try {
