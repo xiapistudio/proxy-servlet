@@ -3,7 +3,7 @@
  */
 
 /**
- * @class URITemplateProxyServlet
+ * @class UriTemplateProxyServlet
  * @author xieyaowei(xieyaowei@baidu.com)
  * @date 2022-06-20 20:13
  * @brief
@@ -38,10 +38,10 @@ import org.apache.http.client.utils.URLEncodedUtils;
  *   targetUri = http://{host}:{port}/{path}
  * </pre>
  * -- which has the template variables.  The incoming request must contain query args of these
- * names.  They are removed when the request is sent to the target.
+ * names. They are removed when the request is sent to the target.
  */
 @SuppressWarnings({"serial"})
-public class URITemplateProxyServlet extends ProxyServlet {
+public class UriTemplateProxyServlet extends ProxyServlet {
 
     /* Rich:
      * It might be a nice addition to have some syntax that allowed a proxy arg to be "optional", that is,
@@ -54,16 +54,16 @@ public class URITemplateProxyServlet extends ProxyServlet {
      * if defined for this proxy URL.
      */
     protected static final Pattern TEMPLATE_PATTERN = Pattern.compile("\\{(.+?)\\}");
-    private static final String ATTR_QUERY_STRING =
-            org.mitre.dsmiley.httpproxy.URITemplateProxyServlet.class.getSimpleName() + ".queryString";
+    protected static final String ATTR_QUERY_STRING = UriTemplateProxyServlet.class.getSimpleName() + ".queryString";
 
-    protected String targetUriTemplate;//has {name} parts
+    protected String targetUriTemplate; // has {name} parts
 
     @Override
     protected void initTarget() throws ServletException {
         targetUriTemplate = getConfigParam(P_TARGET_URI);
-        if (targetUriTemplate == null)
-            throw new ServletException(P_TARGET_URI+" is required.");
+        if (targetUriTemplate == null) {
+            throw new ServletException(P_TARGET_URI + " is required.");
+        }
 
         // leave this.target* null to prevent accidental mis-use
     }
@@ -94,7 +94,7 @@ public class URITemplateProxyServlet extends ProxyServlet {
 
         List<NameValuePair> pairs;
         try {
-            //note: HttpClient 4.2 lets you parse the string without building the URI
+            // note: HttpClient 4.2 lets you parse the string without building the URI
             pairs = URLEncodedUtils.parse(new URI(queryString), "UTF-8");
         } catch (URISyntaxException e) {
             throw new ServletException("Unexpected URI parsing error on " + queryString, e);
@@ -106,13 +106,13 @@ public class URITemplateProxyServlet extends ProxyServlet {
         }
 
         // Now rewrite the URL
-        StringBuffer urlBuf = new StringBuffer();//note: StringBuilder isn't supported by Matcher
+        StringBuffer urlBuf = new StringBuffer();// note: StringBuilder isn't supported by Matcher
         Matcher matcher = TEMPLATE_PATTERN.matcher(targetUriTemplate);
         while (matcher.find()) {
             String arg = matcher.group(1);
-            String replacement = params.remove(arg);//note we remove
+            String replacement = params.remove(arg); // note we remove
             if (replacement == null) {
-                throw new ServletException("Missing HTTP parameter "+arg+" to fill the template");
+                throw new ServletException("Missing HTTP parameter " + arg + " to fill the template");
             }
             matcher.appendReplacement(urlBuf, replacement);
         }
@@ -124,7 +124,7 @@ public class URITemplateProxyServlet extends ProxyServlet {
         try {
             targetUriObj = new URI(newTargetUri);
         } catch (Exception e) {
-            throw new ServletException("Rewritten targetUri is invalid: " + newTargetUri,e);
+            throw new ServletException("Rewritten targetUri is invalid: " + newTargetUri, e);
         }
 
         servletRequest.setAttribute(ATTR_TARGET_HOST, URIUtils.extractHost(targetUriObj));

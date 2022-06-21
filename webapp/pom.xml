@@ -10,9 +10,15 @@
     </parent>
     <groupId>com.xiapistudio.http</groupId>
     <artifactId>spring-webapp</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
 
     <dependencies>
+        <dependency>
+            <groupId>com.xiapistudio.http</groupId>
+            <artifactId>http-proxy-servlet</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
